@@ -1,7 +1,7 @@
-# coding: utf-8
-# Copyright 2017 Opener B.V.
+# © 2017 Opener BV (<https://opener.amsterdam>)
+# © 2020 Vanmoof BV (<https://www.vanmoof.com>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
-from openerp import fields, models
+from odoo import fields, models
 
 
 class ResCompany(models.Model):

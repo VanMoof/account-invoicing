@@ -1,7 +1,7 @@
-# coding: utf-8
-# Copyright 2017 Opener B.V.
+# © 2017 Opener BV (<https://opener.amsterdam>)
+# © 2020 Vanmoof BV (<https://www.vanmoof.com>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
-from openerp import api, models
+from odoo import api, models
 
 
 class AccountInvoice(models.Model):
@@ -16,20 +16,18 @@ class AccountInvoice(models.Model):
     @api.multi
     def reset_discount(self):
         for invoice in self:
-            discount_lines = invoice.invoice_line.filtered('discount_line')
-            for line in invoice.invoice_line.filtered('discount_real'):
+            discount_lines = invoice.invoice_line_ids.filtered('discount_line')
+            for line in invoice.invoice_line_ids.filtered('discount_real'):
                 line.discount = line.discount_real
             if discount_lines:
                 discount_lines.unlink()
-                invoice.button_reset_taxes()
+                invoice.compute_taxes()
 
     @api.multi
     @api.returns('self')
-    def refund(self, date=None, period_id=None,
-               description=None, journal_id=None):
+    def refund(self, date=None, description=None, journal_id=None):
         invoices = super(AccountInvoice, self).refund(
-            date=date, period_id=period_id, description=description,
-            journal_id=journal_id)
+            date=date, description=description, journal_id=journal_id)
         invoices.reset_discount()
         return invoices
 
@@ -43,18 +41,17 @@ class AccountInvoice(models.Model):
         """ Transfer discount percentages to discount lines """
         for invoice in self:
             discount_map = {}
-            for line in invoice.invoice_line:
+            for line in invoice.invoice_line_ids:
                 if line.discount:
                     line.discount_real = line.discount
                     line.discount = 0
                     product = line.get_discount_product().with_context(
                         lang=invoice.partner_id.lang)
                     discount_map.setdefault(
-                        (product, tuple(line.invoice_line_tax_id)), []
+                        (product, tuple(line.invoice_line_tax_ids)), []
                     ).append(line)
             for (product, taxes), lines in discount_map.items():
-                currency = (invoice.journal_id.currency or
-                            invoice.company_id.currency_id)
+                currency = invoice.journal_id.currency_id
                 price_unit = currency.round(
                     -1 * sum((line.discount_real / 100) * line.quantity *
                              line.price_unit
@@ -68,21 +65,17 @@ class AccountInvoice(models.Model):
                     'discount_line': True,
                     'discount_real': 0,
                 })
-                values = self.env['account.invoice.line'].product_id_change(
-                    product=product.id, uom_id=product.uom_id.id, qty=1,
-                    type=invoice.type,
-                    partner_id=invoice.partner_id.id,
-                    fposition_id=invoice.fiscal_position.id,
-                    price_unit=price_unit,
-                    company_id=invoice.company_id.id)['value']
-                values.pop('invoice_line_tax_id', False)
-                values.pop('price_unit', False)
-                discount_line.write(values)
+                discount_line._onchange_product_id()
+                discount_line.write({
+                    'invoice_line_tax_ids': False,
+                    'price_unit': price_unit,
+                })
+
 
             if discount_map:
                 # Always recompute taxes, to cover the case that there is no
                 # tax ledger account configured or small rounding differences
                 # with included taxes.
-                invoice.button_reset_taxes()
+                invoice.compute_taxes()
 
         return super(AccountInvoice, self).action_move_create()

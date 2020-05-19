@@ -1,0 +1,1 @@
+* Because there may be incompatibilities in the tax lines before and after rewriting the invoice lines, they will always be recomputed for invoices with discounts. Any corrections of the total tax amount will be lost.
