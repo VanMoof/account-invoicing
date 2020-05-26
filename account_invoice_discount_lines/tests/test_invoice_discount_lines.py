@@ -43,7 +43,7 @@ class TestInvoiceDiscountLines(TransactionCase):
                     'price_unit': price_unit,
                     'quantity': 1,
                     'discount': discount,
-                    'invoice_line_tax_id': [(4, self.tax.id)],
+                    'invoice_line_tax_ids': [(6, 0, [self.tax.id])],
                     'product_id': self.env.ref('product.product_product_3').id,
                     'uos_id': self.env.ref('uom.product_uom_unit').id,
                 })],
@@ -58,7 +58,7 @@ class TestInvoiceDiscountLines(TransactionCase):
         base_line = invoice.invoice_line_ids
         self.assertTrue(
             self.env.user.company_id.currency_id.is_zero(
-                invoice.amount_total - 90.00))
+                invoice.amount_total - 90.09))
         self.assertEqual(base_line.discount, 10)
         self.assertEqual(base_line.discount_display, 10)
         self.assertFalse(base_line.discount_real)
@@ -78,7 +78,7 @@ class TestInvoiceDiscountLines(TransactionCase):
                 base_line.price_subtotal - 100))
         self.assertTrue(
             self.env.user.company_id.currency_id.is_zero(
-                invoice.amount_total - 90.00))
+                invoice.amount_total - 90.1))
 
     def test_02_invoice_discount_lines_tax_included(self):
         self.tax.price_include = True
