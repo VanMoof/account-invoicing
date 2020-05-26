@@ -25,8 +25,9 @@ class AccountInvoice(models.Model):
 
     @api.multi
     @api.returns('self')
-    def refund(self, date=None, description=None, journal_id=None):
-        invoices = super(AccountInvoice, self).refund(
+    def refund(self, date_invoice=None, date=None,
+               description=None, journal_id=None):
+        invoices = super(AccountInvoice, self).refund(date_invoice=date_invoice,
             date=date, description=description, journal_id=journal_id)
         invoices.reset_discount()
         return invoices
@@ -66,11 +67,8 @@ class AccountInvoice(models.Model):
                     'discount_real': 0,
                 })
                 discount_line._onchange_product_id()
-                discount_line.write({
-                    'invoice_line_tax_ids': False,
-                    'price_unit': price_unit,
-                })
-
+                discount_line.invoice_line_tax_ids = False
+                discount_line.price_unit = price_unit
 
             if discount_map:
                 # Always recompute taxes, to cover the case that there is no

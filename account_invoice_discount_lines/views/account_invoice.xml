@@ -5,7 +5,7 @@
         <field name="model">account.invoice</field>
         <field name="inherit_id" ref="account.invoice_supplier_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//field[@name='invoice_line']/tree/field[@name='discount']"
+            <xpath expr="//field[@name='invoice_line_ids']/tree/field[@name='discount']"
                    position="attributes">
                 <attribute name="string">Discount (%)</attribute>
                 <attribute name="name">discount_display</attribute>
@@ -18,7 +18,7 @@
         <field name="model">account.invoice</field>
         <field name="inherit_id" ref="account.invoice_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//field[@name='invoice_line']/tree/field[@name='discount']"
+            <xpath expr="//field[@name='invoice_line_ids']/tree/field[@name='discount']"
                    position="attributes">
                 <attribute name="string">Discount (%)</attribute>
                 <attribute name="name">discount_display</attribute>

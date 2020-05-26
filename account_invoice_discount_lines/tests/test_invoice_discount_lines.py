@@ -58,7 +58,7 @@ class TestInvoiceDiscountLines(TransactionCase):
         base_line = invoice.invoice_line_ids
         self.assertTrue(
             self.env.user.company_id.currency_id.is_zero(
-                invoice.amount_total - 99.00))
+                invoice.amount_total - 90.00))
         self.assertEqual(base_line.discount, 10)
         self.assertEqual(base_line.discount_display, 10)
         self.assertFalse(base_line.discount_real)
@@ -78,7 +78,7 @@ class TestInvoiceDiscountLines(TransactionCase):
                 base_line.price_subtotal - 100))
         self.assertTrue(
             self.env.user.company_id.currency_id.is_zero(
-                invoice.amount_total - 99.00))
+                invoice.amount_total - 90.00))
 
     def test_02_invoice_discount_lines_tax_included(self):
         self.tax.price_include = True
@@ -106,7 +106,7 @@ class TestInvoiceDiscountLines(TransactionCase):
             self.env.user.company_id.currency_id.is_zero(
                 invoice.amount_total - copy.amount_total))
 
-        copy.button_reset_taxes()
+        copy.compute_taxes()
         copy.action_invoice_open()
         self.assertEqual(copy.state, 'open')
         self.assertEqual(len(copy.invoice_line_ids), 2)
@@ -119,14 +119,14 @@ class TestInvoiceDiscountLines(TransactionCase):
         invoice.action_invoice_open()
         wiz = self.env['account.invoice.refund'].with_context(
             active_id=invoice.id, active_ids=[invoice.id]).create(
-                {'filter_refund': 'cancel'})
+                {'filter_refund': 'cancel', 'description': 'reason test', })
         action = wiz.invoice_refund()
         refund_id = action['domain'][-1][-1][0]
         self.assertTrue(refund_id)
         refund = self.env['account.invoice'].browse(refund_id)
         self.assertEqual(invoice.state, 'paid')
         self.assertEqual(refund.state, 'paid')
-        self.assertEqual(len(refund.invoice_line), 2)
+        self.assertEqual(len(refund.invoice_line_ids), 2)
         self.assertTrue(
             self.env.user.company_id.currency_id.is_zero(
                 invoice.amount_total - refund.amount_total))
