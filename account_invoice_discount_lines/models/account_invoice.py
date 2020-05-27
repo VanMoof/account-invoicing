@@ -67,7 +67,8 @@ class AccountInvoice(models.Model):
                     'discount_real': 0,
                 })
                 discount_line._onchange_product_id()
-                discount_line.invoice_line_tax_ids = False
+                discount_line.invoice_line_tax_ids = (
+                    lines[0].invoice_line_tax_ids)
                 discount_line.price_unit = price_unit
 
             if discount_map:

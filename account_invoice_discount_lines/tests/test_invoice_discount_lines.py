@@ -11,7 +11,7 @@ class TestInvoiceDiscountLines(TransactionCase):
         super(TestInvoiceDiscountLines, self).setUp()
         self.tax = self.env['account.tax'].create({
             'name': 'Test tax',
-            'amount': .1,
+            'amount': 10,
             'amount_type': 'percent',
             'account_id': self.env.ref('l10n_generic_coa.1_conf_iva').id,
             'refund_account_id': self.env.ref('l10n_generic_coa.1_conf_iva').id,
@@ -58,7 +58,7 @@ class TestInvoiceDiscountLines(TransactionCase):
         base_line = invoice.invoice_line_ids
         self.assertTrue(
             self.env.user.company_id.currency_id.is_zero(
-                invoice.amount_total - 90.09))
+                invoice.amount_total - 99.00))
         self.assertEqual(base_line.discount, 10)
         self.assertEqual(base_line.discount_display, 10)
         self.assertFalse(base_line.discount_real)
@@ -78,7 +78,7 @@ class TestInvoiceDiscountLines(TransactionCase):
                 base_line.price_subtotal - 100))
         self.assertTrue(
             self.env.user.company_id.currency_id.is_zero(
-                invoice.amount_total - 90.1))
+                invoice.amount_total - 99.0))
 
     def test_02_invoice_discount_lines_tax_included(self):
         self.tax.price_include = True
