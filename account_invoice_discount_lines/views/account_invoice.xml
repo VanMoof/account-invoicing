@@ -6,13 +6,12 @@
         <field name="inherit_id" ref="account.invoice_supplier_form"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='invoice_line_ids']/tree/field[@name='discount']"
-                   position="before">
-                <field name="discount" invisible="1"/>
+                   position="after">
+                <field name="discount_display" string="Disc (%)"/>
             </xpath>
             <xpath expr="//field[@name='invoice_line_ids']/tree/field[@name='discount']"
                    position="attributes">
-                <attribute name="string">Discount (%)</attribute>
-                <attribute name="name">discount_display</attribute>
+                <attribute name="invisible">1</attribute>
             </xpath>
         </field>
     </record>
@@ -23,14 +22,14 @@
         <field name="inherit_id" ref="account.invoice_form"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='invoice_line_ids']/tree/field[@name='discount']"
-                   position="before">
-                <field name="discount" invisible="1"/>
+                   position="after">
+                <field name="discount_display" string="Disc (%)"/>
             </xpath>
             <xpath expr="//field[@name='invoice_line_ids']/tree/field[@name='discount']"
                    position="attributes">
-                <attribute name="string">Discount (%)</attribute>
-                <attribute name="name">discount_display</attribute>
+                <attribute name="invisible">1</attribute>
             </xpath>
+
         </field>
     </record>
 </odoo>

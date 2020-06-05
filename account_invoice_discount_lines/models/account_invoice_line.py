@@ -26,6 +26,7 @@ class AccountInvoiceLine(models.Model):
                 else line.discount)
 
     @api.multi
+    @api.onchange('discount_display')
     def _inverse_discount_display(self):
         for line in self:
             line.discount = line.discount_display
