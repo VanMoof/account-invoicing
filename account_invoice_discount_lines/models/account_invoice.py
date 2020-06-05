@@ -9,6 +9,7 @@ class AccountInvoice(models.Model):
 
     @api.multi
     def copy(self, default=None):
+        """ Rset discount lines when creating invoices copies """
         res = self.env['account.invoice']
         for invoice in self:
             invoice = super(AccountInvoice, self).copy(default=default)
@@ -18,6 +19,7 @@ class AccountInvoice(models.Model):
 
     @api.multi
     def reset_discount(self):
+        """ Unlink dscount lines and restore the discount value """
         for invoice in self:
             discount_lines = invoice.invoice_line_ids.filtered('discount_line')
             for line in invoice.invoice_line_ids.filtered('discount_real'):
@@ -30,13 +32,16 @@ class AccountInvoice(models.Model):
     @api.returns('self')
     def refund(self, date_invoice=None, date=None,
                description=None, journal_id=None):
-        invoices = super(AccountInvoice, self).refund(date_invoice=date_invoice,
-            date=date, description=description, journal_id=journal_id)
+        """ Reset discount lines when creating refunds """
+        invoices = super(AccountInvoice, self).refund(
+            date_invoice=date_invoice, date=date, description=description,
+            journal_id=journal_id)
         invoices.reset_discount()
         return invoices
 
     @api.multi
     def action_cancel_draft(self):
+        """ Reset discount lines when resetting the invoice state to draft """
         self.reset_discount()
         return super(AccountInvoice, self).action_cancel_draft()
 

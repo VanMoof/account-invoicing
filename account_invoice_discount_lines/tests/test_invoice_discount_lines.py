@@ -1,58 +1,65 @@
 # © 2017 Opener BV (<https://opener.amsterdam>)
 # © 2020 Vanmoof BV (<https://www.vanmoof.com>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
-from odoo import tests
-from odoo.tests.common import TransactionCase
+from odoo.tests.common import SavepointCase
 
 
-@tests.tagged('standard', 'at_install')
-class TestInvoiceDiscountLines(TransactionCase):
-    def setUp(self):
-        super(TestInvoiceDiscountLines, self).setUp()
+class TestInvoiceDiscountLines(SavepointCase):
+    @classmethod
+    def setUpClass(self):
+        super(TestInvoiceDiscountLines, self).setUpClass()
+
+        self.liability_account = self.env['account.account'].search(
+            [('user_type_id', '=', self.env.ref(
+                'account.data_account_type_current_liabilities').id)], limit=1)
+        self.expense_account = self.env['account.account'].search(
+            [('user_type_id', '=', self.env.ref(
+                'account.data_account_type_expenses').id)], limit=1)
+        self.receivable_account = self.env['account.account'].search(
+            [('user_type_id', '=', self.env.ref(
+                'account.data_account_type_receivable').id)], limit=1)
+        self.revenue_account = self.env['account.account'].search(
+            [('user_type_id', '=', self.env.ref(
+                'account.data_account_type_revenue').id)], limit=1)
+
         self.tax = self.env['account.tax'].create({
             'name': 'Test tax',
             'amount': 10,
             'amount_type': 'percent',
-            'account_id': self.env.ref('l10n_generic_coa.1_conf_iva').id,
-            'refund_account_id': self.env.ref('l10n_generic_coa.1_conf_iva').id,
+            'account_id': self.liability_account.id,
+            'refund_account_id': self.liability_account.id,
         })
         product = self.env.ref('product.product_product_2')
         self.env.user.company_id.write({'discount_product': product.id})
-        account = self.env.ref('l10n_generic_coa.1_conf_a_recv')
         product.write({
             'name': 'Discount',
-            'property_account_income': account.id,
-            'property_account_expense': account.id,
+            'property_account_income_id': self.expense_account.id,
+            'property_account_expense_id': self.expense_account.id,
         })
         self.journal = self.env['account.journal'].search(
-            [('name', '=', 'Bank')], limit=1)
-        self.journal.currency_id = self.env.ref(
-            'base.main_company').currency_id.id
+            [('type', '=', 'sale')], limit=1)
 
     def create_invoice(self, price_unit=100, discount=10):
         invoice = self.env['account.invoice'].create({
-            'account_id': self.env.ref('l10n_generic_coa.1_conf_a_recv').id,
+            'account_id': self.receivable_account.id,
             'journal_id': self.journal.id,
             'partner_id': self.env.ref('base.res_partner_12').id,
             'name': 'Test invoice',
             'invoice_line_ids': [
                 (0, 0, {
-                    'account_id': self.env.ref(
-                        'l10n_generic_coa.1_conf_a_sale').id,
+                    'account_id': self.revenue_account.id,
                     'name': '[PCSC234] PC Assemble SC234',
                     'price_unit': price_unit,
                     'quantity': 1,
                     'discount': discount,
                     'invoice_line_tax_ids': [(6, 0, [self.tax.id])],
                     'product_id': self.env.ref('product.product_product_3').id,
-                    'uos_id': self.env.ref('uom.product_uom_unit').id,
                 })],
         })
         invoice.compute_taxes()
         return invoice
 
     def test_01_invoice_discount_lines(self):
-        self.tax.account_collected_id = False
         invoice = self.create_invoice()
         self.assertEqual(len(invoice.invoice_line_ids), 1)
         base_line = invoice.invoice_line_ids
@@ -79,6 +86,11 @@ class TestInvoiceDiscountLines(TransactionCase):
         self.assertTrue(
             self.env.user.company_id.currency_id.is_zero(
                 invoice.amount_total - 99.0))
+
+        # Discount is registered on the revenue account of the discount product
+        discount_move_line = invoice.move_id.line_ids.filtered(
+            lambda ml: ml.account_id == self.expense_account)
+        self.assertEqual(discount_move_line.debit, 10.)
 
     def test_02_invoice_discount_lines_tax_included(self):
         self.tax.price_include = True
