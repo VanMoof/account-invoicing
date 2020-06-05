@@ -1,4 +1,3 @@
-# coding: utf-8
 def post_init_hook(cr, pool):
     cr.execute(
         """ UPDATE account_invoice_line
