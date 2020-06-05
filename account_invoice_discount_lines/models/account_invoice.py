@@ -7,11 +7,14 @@ from odoo import api, models
 class AccountInvoice(models.Model):
     _inherit = 'account.invoice'
 
-    @api.one
+    @api.multi
     def copy(self, default=None):
-        invoice = super(AccountInvoice, self).copy(default)
-        invoice.reset_discount()
-        return invoice
+        res = self.env['account.invoice']
+        for invoice in self:
+            invoice = super(AccountInvoice, self).copy(default=default)
+            invoice.reset_discount()
+            res += invoice
+        return res
 
     @api.multi
     def reset_discount(self):
