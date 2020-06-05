@@ -55,10 +55,7 @@ class AccountInvoice(models.Model):
                         (product, tuple(line.invoice_line_tax_ids)), []
                     ).append(line)
             for (product, taxes), lines in discount_map.items():
-                currency = invoice.journal_id.currency_id
-                if not currency:
-                    currency = invoice.currency_id
-                price_unit = currency.round(
+                price_unit = invoice.currency_id.round(
                     -1 * sum((line.discount_real / 100) * line.quantity *
                              line.price_unit
                              for line in lines))
