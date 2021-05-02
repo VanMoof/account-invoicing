@@ -1,0 +1,1 @@
+Configure a dedicated invoice product in the compay settings. Use the product accounting settings to configure the expense and revenue accounts. Note that while sale discounts are an expense and purchase discounts may count as a revenue, sale discounts will still be posted on the revenue account and purchase discounts on the expense account of the product.
