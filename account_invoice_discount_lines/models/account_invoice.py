@@ -67,7 +67,7 @@ class AccountInvoice(models.Model):
                 discount_line = lines[0].copy(default={
                     'product_id': product.id,
                     'price_unit': price_unit,
-                    'uos_id': product.uom_id.id,
+                    'uom_id': product.uom_id.id,
                     'discount': 0.0,
                     'quantity': 1,
                     'discount_line': True,
